@@ -1,5 +1,6 @@
 package com.idreesinc.celeste;
 
+import com.idreesinc.celeste.listener.ItemsAdderDataLoad;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -14,6 +15,8 @@ public class Celeste extends JavaPlugin {
 
     public CelesteConfigManager configManager = new CelesteConfigManager(this);
 
+    private boolean itemsAdderLoaded = false;
+
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
@@ -23,6 +26,11 @@ public class Celeste extends JavaPlugin {
         this.getCommand("celeste").setExecutor(new CommandCeleste(this));
         this.getCommand("shootingstar").setExecutor(new CommandShootingStar(this));
         this.getCommand("fallingstar").setExecutor(new CommandFallingStar(this));
+
+        if (getServer().getPluginManager().isPluginEnabled("ItemsAdder")) {
+            getServer().getPluginManager().registerEvents(new ItemsAdderDataLoad(this), this);
+        }
+
         configManager.processConfigs();
 
         BukkitRunnable stargazingTask = new Astronomer(this);
@@ -53,5 +61,13 @@ public class Celeste extends JavaPlugin {
                 }
             });
         }
+    }
+
+    public boolean isItemsAdderLoaded() {
+        return itemsAdderLoaded;
+    }
+
+    public void setItemsAdderLoaded() {
+        this.itemsAdderLoaded = true;
     }
 }

@@ -1,10 +1,15 @@
 package com.idreesinc.celeste.config;
 
+import com.idreesinc.celeste.Celeste;
 import com.idreesinc.celeste.utilities.WeightedRandomBag;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
 public class CelesteConfig {
+
+    private final Celeste celeste;
+
     public boolean newMoonMeteorShower;
     public int beginSpawningStarsTime;
     public int endSpawningStarsTime;
@@ -23,15 +28,17 @@ public class CelesteConfig {
     public double fallingStarsVolume;
     public int fallingStarsSparkTime;
     public int fallingStarsExperience;
-    public WeightedRandomBag<String> fallingStarSimpleLoot;
+    public WeightedRandomBag<ItemStack> fallingStarSimpleLoot;
     public String fallingStarLootTable;
 
-    public CelesteConfig(ConfigurationSection section) {
+    public CelesteConfig(Celeste celeste, ConfigurationSection section) {
+        this.celeste = celeste;
         // Used to build the global config
         buildFromConfigurationSection(section);
     }
 
-    public CelesteConfig(ConfigurationSection section, CelesteConfig globalConfig) {
+    public CelesteConfig(Celeste celeste, ConfigurationSection section, CelesteConfig globalConfig) {
+        this.celeste = celeste;
         // Used to build per-world configs
         buildFromConfigurationSectionWithGlobal(section, globalConfig);
     }
@@ -96,15 +103,27 @@ public class CelesteConfig {
         }
     }
 
-    public WeightedRandomBag<String> calculateSimpleLoot(ConfigurationSection loot) {
-        WeightedRandomBag<String> fallingStarDrops = new WeightedRandomBag<>();
+    public WeightedRandomBag<ItemStack> calculateSimpleLoot(ConfigurationSection loot) {
+        WeightedRandomBag<ItemStack> fallingStarDrops = new WeightedRandomBag<>();
         for (String key : loot.getKeys(false)) {
-            try {
-                Material.valueOf(key.toUpperCase());
-                fallingStarDrops.addEntry(key.toUpperCase(), loot.getDouble(key));
-            } catch (IllegalArgumentException e) {
-                System.err.println("Error: Item with name " + key.toUpperCase() + " does not exist, skipping");
+            Material material = Material.matchMaterial(key);
+            if (material != null) {
+                fallingStarDrops.addEntry(new ItemStack(material), loot.getDouble(key));
+                continue;
             }
+
+            if (!celeste.isItemsAdderLoaded()) {
+                celeste.getLogger().warning("Error: Item with name " + key.toUpperCase() + " does not exist, skipping");
+                continue;
+            }
+
+            dev.lone.itemsadder.api.CustomStack customStack = dev.lone.itemsadder.api.CustomStack.getInstance(key);
+            if (customStack == null) {
+                celeste.getLogger().warning("Error: Item with name " + key.toUpperCase() + " does not exist, skipping");
+                continue;
+            }
+
+            fallingStarDrops.addEntry(customStack.getItemStack(), loot.getDouble(key));
         }
         return fallingStarDrops;
     }

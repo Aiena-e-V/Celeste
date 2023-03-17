@@ -2,7 +2,6 @@ package com.idreesinc.celeste;
 
 import com.idreesinc.celeste.config.CelesteConfig;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
@@ -57,7 +56,7 @@ public class FallingStar extends BukkitRunnable {
             if (!lootDropped) {
                 // Note that both simple loot and loot tables will drop if both are configured because why not
                 if (config.fallingStarSimpleLoot != null && config.fallingStarSimpleLoot.entries.size() > 0) {
-                    ItemStack drop = new ItemStack(Material.valueOf(config.fallingStarSimpleLoot.getRandom()), 1);
+                    ItemStack drop = config.fallingStarSimpleLoot.getRandom().clone();
                     location.getWorld().dropItem(dropLoc, drop);
                     if (celeste.getConfig().getBoolean("debug")) {
                         celeste.getLogger().info("Spawned simple falling star loot");

@@ -3,6 +3,8 @@ version: 2.0
 api-version: 1.14
 author: Idrees
 main: com.idreesinc.celeste.Celeste
+softdepend:
+  - ItemsAdder
 
 commands:
   celeste:
